@@ -3,8 +3,6 @@ body {
   padding: 0;
   background-image: url("cardboard.jpg");
 }
-#root{
-}
 .grid-container{
   margin-top: 70px;
   display: grid;
@@ -12,7 +10,7 @@ body {
   grid-auto-columns: 400px;
   grid-auto-rows: 400px;
   grid-gap: 50px 50px;
-  padding:50px;
+  padding-top:50px;
 }
 @media (max-width: 1600px){
   .grid-container{

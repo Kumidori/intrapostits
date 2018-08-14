@@ -1,4 +1,4 @@
-import { Course } from './connectors';
+import { Course, User } from './connectors';
 
 const resolvers = {
     Query: {
@@ -8,6 +8,11 @@ const resolvers = {
         },
         singleCourse(obj, args, context, info) {
             return Course.getSingle(args);
+        }
+    },
+    Mutation: {
+        registerUser(obj, args, context, info){
+            return User.register(args);
         }
     }
 

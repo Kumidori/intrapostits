@@ -1,4 +1,6 @@
 const axios = require("axios");
+const mongoose = require('mongoose');
+
 const Course = {
     getAll(args) {
         console.log(args);
@@ -30,4 +32,18 @@ const Course = {
     }
 };
 
-export { Course };
+const User = {
+    register(args) {
+        console.log(args);
+                    let userSchema = mongoose.Schema({
+                        userName: String,
+                        courses: [String],
+                        posts: [String]
+                    });
+                    let User = mongoose.model('users', userSchema);
+                    let testUser =  new User({ userName: args.userName, courses: [12,14], posts:[23] }).save();
+                    return args;
+    }
+};
+
+export { Course, User };

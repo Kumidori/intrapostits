@@ -14,10 +14,10 @@ type Query {
     id: String!
     ): detailCourse
 }
-type Course {
-    id: Int
-    name: String
-    short: String
+type Mutation{
+    registerUser(
+        userName:String!
+    ): User
 }
 type detailCourse {
     id: Int
@@ -25,6 +25,18 @@ type detailCourse {
     short: String
     vinfo: String
     block: String
+}
+type Course {
+    id: Int
+    name: String
+    short: String
+}
+type User {
+    userName: String
+} 
+type PostIt {
+    text: String
+    author: String
 }
 `;
 

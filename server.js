@@ -3,8 +3,12 @@ import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
 import bodyParser from 'body-parser';
 import schema from './data/schema';
 const path = require('path');
+const mongoose = require('mongoose');
+let uri = 'mongodb://Kumidori:Vanessa15@ds219832.mlab.com:19832/heroku_gcn7mzhz';
 
 const GRAPHQL_PORT = process.env.PORT || 5000;
+mongoose.connect(uri);
+
 
 const graphQLServer = express();
 graphQLServer.use(express.static(path.join(__dirname, 'frontend/build')));
