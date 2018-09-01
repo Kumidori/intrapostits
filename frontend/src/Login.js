@@ -13,7 +13,7 @@ class Login extends Component{
     };
     render(){
     return (
-      <Dialog open={!this.props.loggedIn}>
+      <Dialog open={!this.props.loggedIn} fullScreen>
         <DialogTitle>Register</DialogTitle>
         <DialogContent>
           <DialogContentText>
