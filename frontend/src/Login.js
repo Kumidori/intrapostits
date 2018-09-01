@@ -6,6 +6,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import withMobileDialog from '@material-ui/core/withMobileDialog';
 
 class Login extends Component{
     state = {
@@ -13,7 +14,7 @@ class Login extends Component{
     };
     render(){
     return (
-      <Dialog open={!this.props.loggedIn} fullScreen>
+      <Dialog open={!this.props.loggedIn} fullScreen={this.props.fullScreen}>
         <DialogTitle>Register</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -50,4 +51,4 @@ class Login extends Component{
 }
 }
 
-export default Login;
+export default withMobileDialog()(Login);
