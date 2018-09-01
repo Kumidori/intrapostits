@@ -5,6 +5,7 @@ import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "react-apollo";
 import gql from "graphql-tag";
 import Home from "./Home"
+import Login from "./Login"
 import SingleCoursePage from "./SingleCoursePage"
 import {
     BrowserRouter as Router,
@@ -15,29 +16,23 @@ import {
 
 
 const client = new ApolloClient({
-  uri: "/api"
-});
-
-client
-  .query({
-    query: gql`
-     {
-  allCourses(userName: "weingaen", password: "978c447b32798766c3f1d79b3c75cd1c") {
-    id
-    name
-    short
-  }
+  uri: "/api",
+  request: async (operation) => {
+    operation.setContext({
+    headers: {
+        username: sessionStorage.getItem('username') || "TEST",
+        password: sessionStorage.getItem('password')
+    }
+    });
 }
-
-    `
-  })
-  .then(result => console.log(result));
+});
 
 const App = () => (
     <ApolloProvider client={client}>
         <Router>
             <Switch>
                 <Route exact path="/" component={Home}/>
+                <Route exact path="/login" component={Login}/>
                 <Route exact path="/course/:id" component={SingleCoursePage}/>
             </Switch>
         </Router>

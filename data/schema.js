@@ -15,9 +15,7 @@ type Query {
     ): detailCourse
 }
 type Mutation{
-    registerUser(
-        userName:String!
-    ): User
+    registerUser: User
 }
 type detailCourse {
     id: Int
@@ -33,6 +31,7 @@ type Course {
 }
 type User {
     userName: String
+    courses: [String]
 } 
 type PostIt {
     text: String

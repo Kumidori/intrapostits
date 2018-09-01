@@ -4,7 +4,7 @@ const resolvers = {
     Query: {
         allCourses(obj, args, context, info) {
             console.log("TRYYYIIING");
-            return Course.getAll(args);
+            return Course.getAll(obj,args,context,info);
         },
         singleCourse(obj, args, context, info) {
             return Course.getSingle(args);
@@ -12,7 +12,7 @@ const resolvers = {
     },
     Mutation: {
         registerUser(obj, args, context, info){
-            return User.register(args);
+            return User.register(args,context);
         }
     }
 
