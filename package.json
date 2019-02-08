@@ -2,6 +2,9 @@
   "name": "kit",
   "version": "1.0.0",
   "description": "Webdev Endabgabe React + GraphQL",
+  "engines": {
+    "node": "9.9.0"
+  },
   "main": "server.js",
   "dependencies": {
     "apollo-server-express": "^1.4.0",
