@@ -3,17 +3,15 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "react-apollo";
-import gql from "graphql-tag";
 import Home from "./Home"
 import Login from "./Login"
 import SingleCoursePage from "./SingleCoursePage"
 import {
-    BrowserRouter as Router,
+    Router,
     Route,
-    Link,
     Switch 
   } from 'react-router-dom'
-
+import history from "./history.js";
 
 const client = new ApolloClient({
   uri: "/api",
@@ -29,7 +27,7 @@ const client = new ApolloClient({
 
 const App = () => (
     <ApolloProvider client={client}>
-        <Router>
+        <Router history={history}>
             <Switch>
                 <Route exact path="/" component={Home}/>
                 <Route exact path="/login" component={Login}/>

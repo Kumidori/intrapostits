@@ -4,7 +4,6 @@ import Login from './Login';
 import md5 from 'md5';
 import { Mutation } from "react-apollo";
 import gql from "graphql-tag";
-import { onError } from 'apollo-link-error';
 
 const REGISTER_USER = gql`
 mutation{
@@ -17,9 +16,9 @@ mutation{
 
 class Home extends React.Component {
     state = {
-        loggedIn: false,
-        userName: "",
-        password: ""
+        loggedIn: sessionStorage.getItem("username")&&sessionStorage.getItem("password") ? true : false,
+        userName: sessionStorage.getItem("username") || "",
+        password: sessionStorage.getItem("password") || ""
     };
     handleLogin(registerUser){
         console.log("logging in!");
@@ -28,7 +27,7 @@ class Home extends React.Component {
         registerUser();
     }
     handleInput(e){
-        e.target.id=="password" 
+        e.target.id==="password" 
         ? 
         this.setState({[e.target.id]: md5(e.target.value)})
         :

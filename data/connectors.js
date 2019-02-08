@@ -7,6 +7,13 @@ let userSchema = mongoose.Schema({
     posts: [String]
 });
 
+let postItSchema = mongoose.Schema({
+    content: String,
+    author: String,
+    courseId: String,
+    id: String
+});
+
 let courseSchema = mongoose.Schema({
     id: {type: String, unique: true},
     name: String,
@@ -14,6 +21,10 @@ let courseSchema = mongoose.Schema({
     posts: [String]
 });
 
+const prepare = (o) => {
+    o.id = o._id.toString()
+    return o
+  }
 
 const Course = {
     getAll(obj,args,context,info) {
@@ -30,18 +41,18 @@ const Course = {
                 return res.data.veranstaltungen;
             });
     },
-    getSingle(args) {
+    getSingle(obj,args,context,info) {
         console.log(args);
+        console.log(context)
         return axios.get(`https://webservdm.hs-furtwangen.de/subsites/Frapi/public/veranstaltungen/${args.id}`,
             {
                 auth: {
-                    username: args.userName,
-                    password: args.password,
+                    username: context.headers.username,
+                    password: context.headers.password,
                     id: args.id
                 }
             })
             .then(res => {
-                console.log(res.data.veranstaltung[0]);
                 return res.data.veranstaltung[0];
             });
     }
@@ -72,8 +83,7 @@ const User = {
                     {
                         id: el.id,
                         name: el.name,
-                        $addToSet: { users: context.headers.username },
-                        $addToSet: { posts: "erstelle Notizen zu diesem Kurs" }
+                        $addToSet: { users: context.headers.username }
                         },{ upsert : true },(err,raw)=>{
                         if (err) return handleError(err);
                         console.log('The raw response from Mongo was ', raw);
@@ -91,4 +101,37 @@ const User = {
     }
 };
 
-export { Course, User };
+let PostIts = mongoose.model('postIt', postItSchema)
+const PostIt = { 
+    async getByCourseId(obj,args,context,info){
+    let myReturn = await PostIts.find({ 'courseId': args.courseId }, 'content author courseId id');
+    myReturn.map((el)=>{
+        return prepare(el);
+    })
+    return myReturn;
+    },
+    async add(args,context) {  
+        console.log(args.author)
+        console.log(args.id)  
+       let query = {_id: args.id}
+       if (!query._id) {
+        query._id = new mongoose.mongo.ObjectID();
+    }
+       let myReturn = await PostIts.findOneAndUpdate(query,{ 
+            content: args.content,
+            author: args.author,
+            courseId: args.courseId
+        },{ upsert : true,new: true })
+        console.log("inserting "+ myReturn)
+        return prepare(myReturn)
+    },
+    async delete(args,context){
+        let query = {_id: args.id}
+        if (!query._id) {
+            query._id = new mongoose.mongo.ObjectID();
+        }
+        return prepare(await PostIts.findOneAndRemove(query,'content author courseId id'));
+    }
+};
+
+export { Course, User, PostIt };

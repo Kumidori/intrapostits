@@ -5,35 +5,14 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
-import AddIcon from "@material-ui/icons/Add";
-import PostIt from "./PostIt";
+import Icon from '@material-ui/core/Icon';
+import PostItList from "./PostItList"
+import  {GET_SINGLE_COURSE} from './Queries' 
 
-const GET_SINGLE_COURSE = gql`
-  query singleCourse($id: String!) {
-    singleCourse(
-      userName: "weingaen"
-      password: "978c447b32798766c3f1d79b3c75cd1c"
-      id: $id
-    ) {
-      id
-      name
-      vinfo
-      block
-      short
-    }
-  }
-`;
 
 class SingleCoursePage extends React.Component {
   state = {
-      postIts:["Niggo","Test"]
-  };
-  addPostIt = () => {
-      console.log("adding PostIt");
-    this.setState({
-        postIts: [...this.state.postIts,"Test"]
-    })
-    console.log(this.state);
+    data: {}
   };
   render() {
     let props = this.props;
@@ -50,6 +29,7 @@ class SingleCoursePage extends React.Component {
             <React.Fragment>
               <AppBar position="fixed">
                 <Toolbar>
+                <Button onClick={() => this.props.history.goBack()}><Icon>keyboard_backspace</Icon></Button>
                   <Typography
                     style={{ textAlign: "center", flexGrow: "1" }}
                     variant="title"
@@ -59,22 +39,7 @@ class SingleCoursePage extends React.Component {
                   </Typography>
                 </Toolbar>
               </AppBar>
-
-              <div className="grid-container">
-              {this.state.postIts.map((el)=>{
-                return <PostIt>{el}</PostIt>
-              })}
-              </div>
-
-              <Button
-                className="fab-btn"
-                variant="fab"
-                color="primary"
-                aria-label="Add"
-                onClick={this.addPostIt}
-              >
-                <AddIcon />
-              </Button>
+              <PostItList {...props} postIts ={data.getPostItsInCourse}/>       
             </React.Fragment>
           );
         }}

@@ -3,19 +3,30 @@ import resolvers from './resolvers';
 
 const typeDefs = `
 type Query {
-    allCourses (
-    userName: String!
-    password: String!
-    ): [Course]
+    allCourses : [Course]
     
     singleCourse (
-    userName: String!
-    password: String!
     id: String!
     ): detailCourse
+
+    getPostItsInCourse(
+    courseId: String!
+    ):[PostIt]
+  
 }
 type Mutation{
     registerUser: User
+
+    addPostIt(
+    content: String!
+    author: String!  
+    courseId: String!
+    id: String
+    ): PostIt
+
+    deletePostIt(
+    id:String!
+    ): PostIt
 }
 type detailCourse {
     id: Int
@@ -34,8 +45,10 @@ type User {
     courses: [String]
 } 
 type PostIt {
-    text: String
+    content: String
     author: String
+    courseId : String
+    id : String
 }
 `;
 
