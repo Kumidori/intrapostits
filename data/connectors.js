@@ -73,8 +73,6 @@ const User = {
             .then(res => {
                 courses = res.data.veranstaltungen;
                 courses.forEach((el)=>{
-                    console.log("ID LELELE")
-                    console.log(el.id);
                     let Course = mongoose.model('course', courseSchema);
                     Course.update(
                     {
