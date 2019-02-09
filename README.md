@@ -20,6 +20,7 @@ Sobald ein Post-it erstellt wurde scrollt die App auf dessen Position und das da
 
 ### Frontend
 Das Frontent wurde mit React und Apollo realisiert im Detail wurden folgende npm module verwendet:
+``` 
     "@material-ui/core": "^1.4.3",
     "@material-ui/icons": "^2.0.1",
     "apollo-boost": "^0.1.13",
@@ -32,11 +33,12 @@ Das Frontent wurde mit React und Apollo realisiert im Detail wurden folgende npm
     "react-dom": "^16.4.2",
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.4"
-
+```
 #### Apollo
 Apollo stellt die Verbindung zwischen dem GraphQL-Server und der React App her. Hierdurch werden die React Komponenten durch Apollo erweitert und durch GraphQL Abfragen mit Daten befüllt.
 Für die Integration von Apollo verwendete ich apollo-boost. Apollo-boost ist das von Apollo empfohlene Starter-Kit, welches einen großteil an Voreinstellungen bereits übernimmt, jedoch genug erweiterbar ist um für diese Webapp auszureichen. Für weitere Information zu apollo-boost: https://www.apollographql.com/docs/react/essentials/get-started.html .
 Die benötigten User-Informationen für die Abfragen auf dem Backend werden bei jeder Apollo Query/Mutation über den Context mitgeliefert
+```    
     const client = new ApolloClient({
     uri: "/api",
     request: async (operation) => {
@@ -48,9 +50,10 @@ Die benötigten User-Informationen für die Abfragen auf dem Backend werden bei 
         });
     }
     });
-
+```
 #### Navigation
 Die Navigation erfolgt über den React-Router dem außerdem eine history übergeben wird um den Zurück-Button zu realisieren
+```     
     const App = () => (
         <ApolloProvider client={client}>
             <Router history={history}>
@@ -62,12 +65,14 @@ Die Navigation erfolgt über den React-Router dem außerdem eine history überge
             </Router>
         </ApolloProvider>
     );
+```
 Die 3 Hauptseiten, welche über den Router navigiert werden bestehen aus der Login-Seite, der Kursübersicht (hier Home) und der Kursseite eines einzelnen Kurses (hier SingleCoursePage ). Bei dem Wechsel von der Kursübersicht auf einen einzelnen Kurs wird die Id des Kurses als Parameter über die URL mitgegeben um damit die Daten des einzelnen Kurses abzurufen. Dies wäre in der aktuellen Version der App jedoch nicht mehr nötig, da ich nun den Apollo Cache als State für die App verwende und diese Information daraus schöpfen kann (mehr zu der Datenhaltung später).
 
 #### Login
 Die Loginkomponente ist dafür zuständig die in den 2 Texfeldern eingetragen Daten Benutzername und Passwort über eine Mutation, welche durch die Apollo Mutation Komponente (siehe https://www.apollographql.com/docs/react/essentials/mutations.html) ausgelöst wird, an unser Backend zu senden, um den Benutzer über das Intranet zu authentifizieren.
 #### Kursübersicht
 Ist der Benutzer erfolgreich eingeloggt wird die Courses-Komponente angezeigt welche über eine Apollo Query alle im Intranet eingetragenen Kurse abruft und dazu eine SingleCourse-Komponente rendert. Diese Komponente ist zeigt den Namen des Kurses,die Anzahl der zu diesem Kurs erstellten Post-its an und verlinkt auf die Kursseite.
+``` 
      <Card className="my-card">
             <Link to={`course/${this.props.id}`}>
                 <CardContent>
@@ -88,6 +93,7 @@ Ist der Benutzer erfolgreich eingeloggt wird die Courses-Komponente angezeigt we
                 }}
                 </Query>
         </Card>
+```
 #### Kursseite
 Die "Kursseite" besteht aust 3 Komponenten:
 **SingleCoursePage** stellt den Grundaufbau der Kursseite da und beinhaltet Die Navigation, den Fab-Button und die PostItList
