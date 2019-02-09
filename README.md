@@ -218,7 +218,7 @@ const resolvers = {
 
 };
 ```
-####Connector
+#### Connector
 Hier findet die eigentliche Arbeit statt. In der Connector Datei führe ich die ganzen Zugriffe aus Intranet und der MongoDB aus.
 Die Userdaten werden vom Frontend aus als Context bei jeder Query mitgeschickt und hier für die Zugriffe aus Intranet verwendet. Die Funktionen müssen ein Objekt passend zur Query returnen. Beispiel Kursabfrage:
 ```
@@ -235,7 +235,7 @@ Die Userdaten werden vom Frontend aus als Context bei jeder Query mitgeschickt u
             });
     }
 ```
-####MongoDB
+#### MongoDB
 Als Datenbank entschied ich mich für MongoDB. Da die Anwendung auf Heroku läuft entschied ich mich dafür das Heroku Add-on mlab zu verwenden. Die Zugriffe auf die Datenbank laufen über das npm module "mongoose".
 Auch bei MongoDB muss ähnlich wie bei GraphQL ein Schema erstellt werden:
 ```
