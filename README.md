@@ -96,14 +96,209 @@ Ist der Benutzer erfolgreich eingeloggt wird die Courses-Komponente angezeigt we
 ```
 #### Kursseite
 Die "Kursseite" besteht aust 3 Komponenten:
-**SingleCoursePage** stellt den Grundaufbau der Kursseite da und beinhaltet Die Navigation, den Fab-Button und die PostItList
-**PostItList** ist zuständig für das rendern der einzelnen Post-its und auch für die Post-it-Erstellung über eine Mutation
-**PostIt** diese Komponente stellt ein einzelnes Post-it mit dessen Textinhalt und den 2 Actionbuttons dar. Hier werden auch die 2 Funktionen Bearbeiten und Löschen über Mutations ausgeführt.
+- **SingleCoursePage** stellt den Grundaufbau der Kursseite da und beinhaltet Die Navigation, den Fab-Button und die PostItList
+- **PostItList** ist zuständig für das rendern der einzelnen Post-its und auch für die Post-it-Erstellung über eine Mutation
+- **PostIt** diese Komponente stellt ein einzelnes Post-it mit dessen Textinhalt und den 2 Actionbuttons dar. Hier werden auch die 2 Funktionen Bearbeiten und Löschen über Mutations ausgeführt.
 
 #### Design
 Einiges an CSS wurde von mir geschrieben um den gewünschten Post-it Look zu kreieren zudem wurden jedoch Komponenten aus Material-UI-React(https://material-ui.com/) verwendet.
 Dazu gehören zum Beispiel die Appbar, der Fab-Button und die Card-Komponente. Diese Komponenten wurden großteils stark bearbeitet. Für das Layout benutze ich CSS-Grid und Flexbox. CSS-Grid ist relativ neu in CSS und wird noch nicht von allen Browsern unterstützt (https://caniuse.com/#feat=css-grid), stellt für mich jedoch die Zukunft dar und macht das Layout Design um einiges angenehmer.
 
 ### Backend
+Das Backend besteht aus einem Node Express Server, welcher das Frontend und die GraphQL-Schnittstelle zur Verfügung stellt und auf die MongoDB Datenbank zugreift.
+
+#### GraphQL
+>  GraphQL ist eine Open-Source-Datenabfrage- und Manipulationssprache und eine Laufzeit zum Ausfüllen von Abfragen mit vorhandenen Daten. GraphQL wurde 2012 von Facebook intern entwickelt und 2015 veröffentlicht.
+> - Wikipedia
+
+Für die GraphQL Integration verwende ich das Modul apollo-server-express und für die Schema-Erstellung gql-tools. Zuerst benutze ich apollo-server, welches mehr für einen übernimmmt. Da ich jedoch ein paar Optionen für meinen Express Server festlegen musste, um zum Beispiel Frontend und Backend über ein Heroku-Slot laufen zu lassen oder den Context zu integrieren, entschied ich mich für apollo-server-express um mehr Freiheiten zu besitzen.
+Nach einigen Routing Problemen, sieht mein funktionierendes Routing folgendermaßen aus:
+```
+const graphQLServer = express();
+graphQLServer.use(express.static(path.join(__dirname, 'frontend/build')));
+graphQLServer.use('/api', bodyParser.json(), graphqlExpress(request => ({
+  schema,
+  context: request
+})));
+graphQLServer.use('/graphiql', graphiqlExpress({ endpointURL: '/api' }));
+graphQLServer.get('*', function (request, response){
+  response.sendFile(path.resolve(__dirname, 'frontend/build', 'index.html'));
+});
+graphQLServer.listen(GRAPHQL_PORT, () =>
+  console.log(
+    `GraphiQL is now running on http://localhost:${GRAPHQL_PORT}/graphiql`
+  )
+);
+```
+#### Schema
+Die shema Datei erhält das komplette GraphQL Schema. Dadurch wird festgelegt welche Daten abgefragt werden können und was man erwarten kann zu erhalten. Diese hier festgelegten Queries und Mutations werden im Frontend über Apollo benutzt.
+So sieht das komplette Schema der Anwendung aus:
+```
+const typeDefs = `
+type Query {
+    allCourses : [Course]
+    
+    singleCourse (
+    id: String!
+    ): detailCourse
+
+    getPostItsInCourse(
+    courseId: String!
+    ):[PostIt]
+  
+}
+type Mutation{
+    registerUser: User
+
+    addPostIt(
+    content: String!
+    author: String!  
+    courseId: String!
+    id: String
+    ): PostIt
+
+    deletePostIt(
+    id:String!
+    ): PostIt
+}
+type detailCourse {
+    id: Int
+    name: String
+    short: String
+    vinfo: String
+    block: String
+}
+type Course {
+    id: Int
+    name: String
+    short: String
+}
+type User {
+    userName: String
+    courses: [String]
+} 
+type PostIt {
+    content: String
+    author: String
+    courseId : String
+    id : String
+}
+`;
+
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+```
+#### Resolver 
+Der Resolver ist dafür zuständig den Queries und Mutations Funktionen zuzuweisen,welche die angeforderten Daten bereitstellen. 
+Diese Funktionen hab ich in einer Datei Namens Connector ausgelagert.
+Beispiel Resolver:
+```
+const resolvers = {
+    Query: {
+        allCourses(obj, args, context, info) {
+            return Course.getAll(obj,args,context,info);
+        },
+        singleCourse(obj, args, context, info) {
+            return Course.getSingle(obj,args,context,info);
+        },
+        getPostItsInCourse(obj, args, context, info){
+            return PostIt.getByCourseId(obj,args,context,info);
+        }
+    },
+    Mutation: {
+        registerUser(obj, args, context, info){
+            return User.register(args,context);
+        },
+        addPostIt(obj, args, context, info){
+            return PostIt.add(args,context);
+        },
+        deletePostIt(obj, args, context, info){
+            return PostIt.delete(args,context);
+        }
+    }
+
+};
+```
+####Connector
+Hier findet die eigentliche Arbeit statt. In der Connector Datei führe ich die ganzen Zugriffe aus Intranet und der MongoDB aus.
+Die Userdaten werden vom Frontend aus als Context bei jeder Query mitgeschickt und hier für die Zugriffe aus Intranet verwendet. Die Funktionen müssen ein Objekt passend zur Query returnen. Beispiel Kursabfrage:
+```
+    getAll(obj,args,context,info) {
+        return axios.get('https://webservdm.hs-furtwangen.de/subsites/Frapi/public/veranstaltungen/liste',
+            {
+                auth: {
+                username: context.headers.username,
+                password: context.headers.password
+                    }
+            })
+            .then(res => {
+                return res.data.veranstaltungen;
+            });
+    }
+```
+####MongoDB
+Als Datenbank entschied ich mich für MongoDB. Da die Anwendung auf Heroku läuft entschied ich mich dafür das Heroku Add-on mlab zu verwenden. Die Zugriffe auf die Datenbank laufen über das npm module "mongoose".
+Auch bei MongoDB muss ähnlich wie bei GraphQL ein Schema erstellt werden:
+```
+let postItSchema = mongoose.Schema({
+    content: String,
+    author: String,
+    courseId: String,
+    id: String
+});
+```
+Dies fühlt sich etwas nach doppelt gemoppelt an, da bereits ein solches Schema für GraphQL erstellt wurde, aber vielleicht gibt es dafür mittlerweile eine Lösung um alles in einem Schema zu definieren?
+Da ich Probleme mit den mongoose callbacks hatte, griff if auf js async/await zurück um asynchrone Zugriffe auf die Datenbank zu machen.
+```
+async getByCourseId(obj,args,context,info){
+    let myReturn = await PostIts.find({ 'courseId': args.courseId }, 'content author courseId id');
+    myReturn.map((el)=>{
+        return prepare(el);
+    })
+    return myReturn;
+    }
+```
+Die hier benutze prepare Funktion dient lediglich dazu die automatisch erstellte mongo-ID in einen String zu verwandeln um diesen über GraphQl auszuliefern.
+```
+const prepare = (o) => {
+    o.id = o._id.toString()
+    return o
+  }
+```
+Grundlegend werden 3 Modelle auf in Datenbank gespeichert:
+- Kurs: Id des Intranetkurs, welche User gehören zu diesem Kurs und welche Post-its wurden zu diesem Kurs erstellt.
+- User: Der Name des Users, die gebuchten Kurse und die erstellten Post-its.
+- Post-its: Der Name des authors, der Textinhalt und eine Id
+
+### Datenmanagement
+Es gibt viele möglichkeiten den lokalen State einer Anwendung zu kontrollieren wie zB. Redux, React Context API ,Mobx oder apollo-link-state(hier ein Blog-Artikel dazu https://blog.bitsrc.io/state-of-react-state-management-in-2019-779647206bbc). Da apollo-link-state bereits in apollo-boost integriert ist und ich sowieso Apollo verwende, entschied ich mich meinen lokalen State über den Apollo Cache zu werwalten. Nach einigen Problemen liesen sich die wichtigsten Informationen wie zB die Post-it Objekte im Cache speichern. Das manuelle verändern des Caches war vorallem bei Mutations wichtig. Aktualisiert man in einer Mutation ein Objekt welches über eine Id verfügt übernimmt apollo das updaten des Caches. Erstellt man jedoch in neues Objekt oder löscht eines, wie in meinem Fall ein Post-it, muss man den cache selbst verändern.
+Beispiel:
+```
+<Mutation mutation={ADD_POSTIT} ignoreResults={false} onCompleted={()=>console.log("MUTATION COMPLETED")} onError={()=>console.log("MUTATION ERROR")}
+            update={(cache, { data: { addPostIt } }) => {
+                const {getPostItsInCourse} = cache.readQuery({ 
+                    query: GET_POSTS_IN_COURSE,
+                    variables:{id: this.props.match.params.id}
+                 });
+                cache.writeQuery({
+                  query: GET_POSTS_IN_COURSE,
+                  variables:{id: this.props.match.params.id},
+                  data: { getPostItsInCourse: getPostItsInCourse.concat([addPostIt]) },
+                });
+              }}
+            >
+```
+Jede Apollo Query und Mutation wird im Cache gespeichert.
+
+#### Problem
+Als ich auf den Cache umgestiegen bin, traf ich auf ein unscheinbares Problem, das mich mehrere Stunden beschäftigte.
+Ich wollte lediglich die Anzahl der Post-its die ein Kurs enthält anzeigen und fragte dazu die Post-its in einer Query ab. Nachdem ein neues Post-it erstellt wurde aktualisierte sich diese Zahl jedoch nicht. Das neue Post-it wurde im Cache angezeigt und auch die Query schien zu funktionieren. Das Problem war das die selbe Query einmal mit dem Parameter ID als String und woanders mit ID als Integer aufgerufen wurde. Beide Queries funktionierten, aber wurden von Apollo nicht mehr als ein und die selbe Query erkannt sondern als 2 Unterschiedliche und somit 2 mal im Cache gespeichert. Diese kleine Problem führte dazu, dass ich den State merhmals umschrieb, bis ich den Typ-Unterschied des ID-Parameter bemerkte.
 
 ### Deployment
+Um sowohl Frontend als auch Backend auf einem Heroku Slot deployen zu können benutze ich in der package.json das heroku post-build script:
+```
+ "scripts": {
+    "start": "nodemon ./server.js --exec babel-node",
+    "heroku-postbuild": "cd frontend && npm install && npm run build"
+  },
+```
+Hierduch werden nachdem die Anwendung deployed ist auch die Frontend npm module installiert und ein statischer build generiert, welcher vom backend an den User geliefert wird.
