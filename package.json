@@ -17,7 +17,7 @@
     "lodash": "^4.17.11",
     "mongoose": "^4.13.18",
     "node-fetch": "^1.7.3",
-    "sequelize": "^4.42.0",
+    "sequelize": "^5.15.1",
     "sqlite": "^2.9.3"
   },
   "devDependencies": {
